@@ -1,0 +1,57 @@
+from netmiko import ConnectHandler,Netmiko
+import subprocess
+
+def f11():
+	try:
+		print("Configuring the static routes at R2")
+		connect={'host':'198.51.100.3','username':'test','password':'test','device_type':'cisco_ios'}
+		net_connect=ConnectHandler(**connect)
+		op = net_connect.send_command_timing('ssh -l test 172.16.1.2')
+		if 'Password' in op:
+			net_connect.send_command_timing('test')
+		print(net_connect.send_command_timing('conf t'))
+		print(net_connect.send_command_timing('ip route 198.51.100.0 255.255.255.0 172.16.1.1'))
+		print('done') 
+	except Exception as e:
+		print(e)
+
+def main():
+	from flask import Flask,render_template,request
+	app=Flask(__name__)
+	@app.route('/', methods = ['GET', 'POST'])
+	def f1():
+		try:
+			return render_template('temp2.html')
+		except Exception as e:
+			msg="<html><body><h1>"+str(e)+"</h1></body></html>"
+			return msg
+	
+	@app.route('/f3', methods = ['GET', 'POST'])
+	def f3():
+		a=request.form['value1']
+		b=request.form['value2']
+		c=request.form['value3']
+		print(a,b,c)
+		oid=[]
+		if a=='test1':
+			oid.append('1.3.6.1.2.1.1.2.0')
+		if b=='test2':
+			oid.append('1.3.6.1.2.1.1.5.0')
+		if c=='test3':
+			oid.append('1.3.6.1.2.1.1.3.0')
+		OUTPUT=''
+		for i in oid:
+			x1=subprocess.Popen(['snmpget','-v','1','-c','public','172.16.1.2',i],stdout=subprocess.PIPE,stderr=subprocess.STDOUT)
+			y1=x1.stdout.read().strip().decode()
+			if 'Timeout' in y1:
+				print("Please check managemnt interface for:", ip[0])
+			else:
+				OUTPUT+=y1.split()[-1]
+				OUTPUT+='________'
+		print(OUTPUT)
+		msg="<html><body><h1>"+str(OUTPUT)+"</h1></body></html>"
+		return msg
+	if __name__=='__main__':
+		app.run(port=5005)
+f11()
+main()
